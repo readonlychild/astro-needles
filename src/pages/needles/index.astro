@@ -1,0 +1,33 @@
+---
+import Layout from './../../layouts/Layout.astro';
+import { S3 } from 'aws-sdk';
+import NeedleSize from './../../components/NeedleSize.astro';
+
+const s3 = new S3({
+    accessKeyId: import.meta.env.S3_API_KEY,
+    secretAccessKey: import.meta.env.S3_API_SECRET
+  });
+let parms = {
+  Bucket: import.meta.env.S3_BUCKET,
+  Prefix: import.meta.env.S3_KEY_PREFIX
+};
+
+const data = await s3.listObjectsV2(parms).promise();
+const filtered = data.Contents.filter((d) => { return d.Size > 0 });
+console.log(JSON.stringify(filtered,null,2));
+
+---
+<Layout title="Needle Stack">
+  <h1><span class="text-gradient">Needle Stack</span></h1>
+  {filtered.map((entry) => (
+    <div class="needle">
+      <a href={`/needles/${entry.Key.substring(parms.Prefix.length)}`}>{entry.Key.substring(parms.Prefix.length)}</a>
+      <br/><small>{entry.LastModified.toString().substring(4, 24)}
+      <NeedleSize size={entry.Size} />
+    </div>
+  ))}
+</Layout>
+
+<style>
+.needle { padding:10px; border-radius:5px; margin:0; border:1px solid #cdf; margin:4px 0; }
+</style>

@@ -1,0 +1,108 @@
+---
+import Layout from './../../layouts/Layout.astro';
+import { S3 } from 'aws-sdk';
+
+import MessageAttachments from './../../components/MessageAttachments.astro';
+import MessageEmbeds from './../../components/MessageEmbeds.astro';
+
+import { Markdown } from 'astro/components';
+
+export async function getStaticPaths () {
+  const s3 = new S3({
+    accessKeyId: import.meta.env.S3_API_KEY,
+    secretAccessKey: import.meta.env.S3_API_SECRET
+  });
+  let parms = {
+    Bucket: import.meta.env.S3_BUCKET,
+    Prefix: import.meta.env.S3_KEY_PREFIX
+  };
+
+  const data = await s3.listObjectsV2(parms).promise();
+  const filtered = data.Contents.filter((d) => { return d.Size > 0 });
+  console.log('filtered.count', filtered.length);
+  let ary = [];
+
+  filtered.forEach((entry) => {
+    console.log('FOR_EACH', entry.Key, entry.Key.substring(parms.Prefix.length));
+    ary.push({
+      params: {
+        key: entry.Key.substring(parms.Prefix.length)
+      },
+      props: {
+        key: entry.Key,
+        size: entry.Size,
+        lastMod: entry.LastModified
+      }
+    });
+  });
+
+  return ary;
+};
+
+const s3 = new S3();
+
+let parms = {
+  Bucket: import.meta.env.S3_BUCKET,
+  Key: `${Astro.props.key}`
+};
+
+const obj = await s3.getObject(parms).promise();
+
+console.log(obj);
+let threadData = JSON.parse(obj.Body.toString('utf-8'));
+threadData.tags = threadData.tags || [];
+---
+<Layout title="a needle">
+  <h3>{threadData.name}</h3>
+  {threadData.guildName}
+   | <a target="needle_view" href={`https://discord.com/channels/${threadData.key}`}>View</a>
+   | <a href="/needles">Back to List</a>
+  <br/><br/>
+  {threadData.tags.map((tag) => (
+    <span class="tag">#{tag}</span>
+  ))}
+  {threadData.tags.length ? (<br/><br/>) : ''}
+  {threadData.messages.map((msg) => (
+    <img class="avatar" width="48" src={msg.author.avatar} />
+    <div class={`message ${msg.isSolution ? 'solution' : ''}`}>
+      <div class="info">
+        <span class="user">{msg.author.username}</span> <span class="created" data-tick={msg.created}>{new Date(msg.created).toString()}</span>
+      </div>
+      <div class="content">
+        <Markdown>{msg.content}</Markdown>
+        <MessageEmbeds msg={msg} />
+        <MessageAttachments msg={msg} />
+      </div>
+      <div class="foot">
+        <a class="jumplink" target="needle_view" href={`https://discord.com/channels/${threadData.key}/${msg.id}`}>jump</a>
+      </div>
+    </div>
+  ))}
+</Layout>
+
+<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment.min.js"></script>
+<script is:inline>
+  let times = document.querySelectorAll('span[data-tick]');
+  times.forEach((span) => {
+    console.log(span);
+    let tick = span.getAttribute('data-tick');
+    let djs = moment(parseInt(tick));
+    span.innerHTML = ' | ' + djs.fromNow() + ' | ' + djs.format('lll');
+  });
+</script>
+
+<style is:inline>
+.message { border-top:0px solid #ccc; padding:0 0 20px; margin:0 0 0 60px; max-width:600px; }
+.message .info { font-size:.72em; background:#f6f8fa; border:1px solid #ccc; border-bottom:0px; border-radius:8px 8px 0 0; padding:7px 15px; }
+.message .created { color:#777; }
+.message .user { color:#457; font-weight:bold; font-size:1.2em; }
+.message .content { padding:12px; background:#fff; border:1px solid #ccc; border-bottom:0; font-size:.8em; }
+.message .foot { font-size:.7em; text-transform:uppercase; background:#fff; border:1px solid #ccc; border-top:0; border-radius:0 0 8px 8px; padding:3px 15px; }
+.message .jumplink { display:inline-block; padding:4px; color:#777; text-decoration:none; }
+.avatar { vertical-align:middle; border-radius:8px; border:1px solid #ccc; margin:0 10px 0 0; float:left; }
+.message.solution .info { background:#bfb; }
+.message.solution .content { background:#dfd; }
+.message.solution .foot { background:#dfd; }
+.tag { display:inline-block; background:#ffd; border:1px solid #ccc; padding:5px 10px 5px 20px; margin:0 10px 0 0; border-radius:20px 0 0 20px; }
+pre { padding:15px; margin:0 -13px; }
+</style>

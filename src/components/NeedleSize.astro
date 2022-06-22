@@ -1,0 +1,19 @@
+---
+const min = Astro.props.min || 2980;
+const max = Astro.props.max || 3980;
+let size = Astro.props.size || 2980;
+const maxwidth = 100;
+size = ((size-min)*100)/(max-min);
+if (size > maxwidth) size = maxwidth;
+---
+<div class="needle-size-item">
+  <div class="needle-size-container" style={`width:${maxwidth}px;`}>
+    <div class="needle-size" style={`width:${size}px;`}></div>
+  </div>
+</div>
+
+<style>
+.needle-size-item { display:inline-block; }
+.needle-size-container { display:block; height:8px; background:#bce; }
+.needle-size { display:block; background:#568; height:8px; }
+</style>

@@ -1,0 +1,93 @@
+---
+export interface Props {
+	title: string;
+}
+
+const { title } = Astro.props as Props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+	<title>{title}</title>
+</head>
+<body>
+	<slot />
+</body>
+</html>
+
+<style is:inline>
+  :root {
+    --color-text: hsl(12, 5%, 4%);
+    --color-bg: #fff;
+		--color-border: hsl(17, 24%, 90%);
+  }
+
+  html {
+    font-family: system-ui, sans-serif;
+    color: var(--color-text);
+  }
+
+  body {
+    margin: 0;
+    padding:20px;
+    font-size:1.2em;
+  }
+
+  :root {
+		--astro-gradient: linear-gradient(0deg,#4F39FA, #DA62C4);
+	}
+
+	h1 {
+		font-size:2em;
+	}
+
+	main {
+		margin: auto;
+    padding: 1em;
+		max-width: 60ch;
+	}
+
+	.text-gradient {
+		font-weight: 900;
+		background-image: var(--astro-gradient);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-size: 100% 200%;
+		background-position-y: 100%;
+		border-radius: 0.4rem;
+		animation: pulse 4s ease-in-out infinite;
+	}
+
+	@keyframes pulse {
+		0%, 100% { background-position-y: 0%; }
+		50% { background-position-y: 80%; }
+	}
+
+	.instructions {
+		line-height: 1.6;
+		margin: 1rem 0;
+		background: #4F39FA;
+		padding: 1.0rem;
+		border-radius: 0.4rem;
+		color: var(--color-bg);
+	}
+
+	.instructions code {
+		font-size: 0.875em;
+		border: 0.1em solid var(--color-border);
+		border-radius: 4px;
+		padding: 0.15em 0.25em;
+	}
+	.link-card-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(24ch, 1fr));
+		gap: 1rem;
+		padding: 0;
+	}
+	a { text-decoration:none; }
+
+</style>

@@ -1,0 +1,17 @@
+---
+const { msg } = Astro.props;
+---
+<div class="embeds">
+  {msg.embeds && msg.embeds.map((embed) => (
+    <div class="item">
+      <a href={embed.url} target="_blank">
+        <img src={embed.url} height="140" />
+      </a>
+    </div>
+  ))}
+</div>
+
+<style>
+.embeds { margin:0; overflow:auto; }
+.embeds .item { float:left; margin:10px; padding:5px; font-size:.6em; border:1px solid #ccc; border-radius:5px; background:#f3f3f3; }
+</style>
